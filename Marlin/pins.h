@@ -486,7 +486,7 @@
   #if MOTHERBOARD == 77
     #define FAN_PIN            8 
   #endif
-  
+
   #if MOTHERBOARD == 35
     #define CONTROLLERFAN_PIN  10 //Pin used for the fan to cool controller
   #endif
@@ -502,7 +502,7 @@
   #if MOTHERBOARD == 35
     #define HEATER_0_PIN       8
   #else
-    #define HEATER_0_PIN       10   // EXTRUDER 1
+  #define HEATER_0_PIN       10   // EXTRUDER 1
   #endif
 
   #if MOTHERBOARD == 33 || MOTHERBOARD == 67
@@ -526,11 +526,11 @@
   #if MOTHERBOARD == 35
     #define HEATER_BED_PIN     -1    // NO BED
   #else
-    #if MOTHERBOARD == 77
-      #define HEATER_BED_PIN     9    // BED
-    #else
-      #define HEATER_BED_PIN     8    // BED
-    #endif
+  #if MOTHERBOARD == 77
+    #define HEATER_BED_PIN     9    // BED
+  #else
+    #define HEATER_BED_PIN     8    // BED
+  #endif
   #endif
   #define TEMP_BED_PIN       14   // ANALOG NUMBERING
 
@@ -998,23 +998,23 @@
 #define LED_PIN            -1
 
 #define FAN_PIN            -1
- #if FAN_PIN == 12 || FAN_PIN ==13
-  #define FAN_SOFT_PWM
+#if FAN_PIN == 12 || FAN_PIN ==13
+#define FAN_SOFT_PWM
 #endif
 
 #ifdef MELZI
- #define LED_PIN            27 /* On some broken versions of the Sanguino libraries the pin definitions are wrong, which then needs LED_PIN as pin 28. But you better upgrade your Sanguino libraries! See #368. */
+#define LED_PIN            27 /* On some broken versions of the Sanguino libraries the pin definitions are wrong, which then needs LED_PIN as pin 28. But you better upgrade your Sanguino libraries! See #368. */
  #define FAN_PIN            4 // Works for Panelolu2 too
 #endif
 
 #ifdef STB
- #define FAN_PIN            4
+#define FAN_PIN            4
 	//  Uncomment this if you have the first generation (V1.10) of STBs board
- #define LCD_PIN_BL         17 // LCD backlight LED
+#define LCD_PIN_BL         17 // LCD backlight LED
 #endif
 
 #ifdef AZTEEG_X1
- #define FAN_PIN            4
+#define FAN_PIN            4
 #endif
 
 #define PS_ON_PIN          -1
@@ -1026,11 +1026,11 @@
 
 #ifdef SANGUINOLOLU_V_1_2
 
- #define HEATER_BED_PIN     12 // (bed)
- #define X_ENABLE_PIN       14
- #define Y_ENABLE_PIN       14
- #define Z_ENABLE_PIN       26
- #define E0_ENABLE_PIN      14
+#define HEATER_BED_PIN     12 // (bed)
+#define X_ENABLE_PIN       14
+#define Y_ENABLE_PIN       14
+#define Z_ENABLE_PIN       26
+#define E0_ENABLE_PIN       14
 
  #ifdef LCD_I2C_PANELOLU2
    #define FAN_PIN          4 // Uses Transistor1 (PWM) on Panelolu2's Sanguino Adapter Board to drive the fan
@@ -1038,11 +1038,11 @@
 
 #else
 
-#define HEATER_BED_PIN      14  // (bed)
+#define HEATER_BED_PIN       14  // (bed)
 #define X_ENABLE_PIN       -1
 #define Y_ENABLE_PIN       -1
 #define Z_ENABLE_PIN       -1
-#define E0_ENABLE_PIN      -1
+#define E0_ENABLE_PIN       -1
 
 #endif
 
@@ -1293,17 +1293,17 @@
 #define LCD_PINS_D6 32
 #define LCD_PINS_D7 30
 
-#endif
+#endif 
 
-#if MOTHERBOARD == 72
+ #if MOTHERBOARD == 72
 #define KNOWN_BOARD
 /*****************************************************************
 * Ultiboard v2.0 pin assignment
 ******************************************************************/
 
-#ifndef __AVR_ATmega2560__
+ #ifndef __AVR_ATmega2560__
  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
-#endif
+ #endif
 
 #define X_STEP_PIN 25
 #define X_DIR_PIN 23
@@ -1357,7 +1357,7 @@
 #define MOTOR_CURRENT_PWM_RANGE 2000
 #define DEFAULT_PWM_MOTOR_CURRENT  {1300, 1300, 1250}
 
-//arduino pin witch triggers an piezzo beeper
+  //arduino pin witch triggers an piezzo beeper
 #define BEEPER 18
 
 #define LCD_PINS_RS 20
@@ -1366,8 +1366,8 @@
 #define LCD_PINS_D5 21
 #define LCD_PINS_D6 5
 #define LCD_PINS_D7 6
-
-//buttons are directly attached
+    
+    //buttons are directly attached
 #define BTN_EN1 40
 #define BTN_EN2 41
 #define BTN_ENC 19  //the click
@@ -1379,6 +1379,96 @@
 #define SDCARDDETECT 39
 
 #endif//MOTHERBOARD == 72
+
+
+#if MOTHERBOARD == 74
+#define KNOWN_BOARD 1
+/*****************************************************************
+* MAKEiT pin assignment
+******************************************************************/
+
+#ifndef __AVR_ATmega2560__
+ #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+#endif 
+
+ #define LARGE_FLASH true  
+ 
+#define X_STEP_PIN 33  //57
+#define X_DIR_PIN 34 //56      
+#define X_MAX_PIN -1      
+#define X_MIN_PIN 16 //13    
+#define X_ENABLE_PIN 32 //58  
+
+#define Y_STEP_PIN 36 //54 
+#define Y_DIR_PIN 37 //53     
+#define Y_MIN_PIN -1     
+#define Y_MAX_PIN 22 //78  
+#define Y_ENABLE_PIN 35 //55  
+
+#define Z_STEP_PIN 41  //51
+#define Z_DIR_PIN 38 //50     
+#define Z_MAX_PIN -1      
+#define Z_MIN_PIN 24 //76
+#define Z_ENABLE_PIN 40  //52
+
+#define Z2_STEP_PIN        19  //45
+#define Z2_DIR_PIN         42  //42
+#define Z2_MAX_PIN         -1      
+#define Z2_MIN_PIN         23 //77
+#define Z2_ENABLE_PIN      18  //46
+
+#define HEATER_BED_PIN     49  //35
+#define TEMP_BED_PIN       15  //82
+
+#define HEATER_0_PIN       12  //25
+#define TEMP_0_PIN          5 //92
+
+#define HEATER_1_PIN       13 //26
+#define TEMP_1_PIN          6 //91
+
+#define HEATER_2_PIN       -1 //10 23
+#define TEMP_2_PIN         -1 //8  89
+
+#define HEATER_3_PIN       -1 //11 24
+#define TEMP_3_PIN         -1 //7  90
+
+#define E0_STEP_PIN        44  //40
+#define E0_DIR_PIN         45  //39
+#define E0_ENABLE_PIN      43  //41
+
+#define E1_STEP_PIN        47  //37
+#define E1_DIR_PIN         48  //36
+#define E1_ENABLE_PIN      46  //38
+
+#define SDPOWER            -1
+#define SDSS               53  //19
+#define LED_PIN            -1
+#define FAN_PIN            7  //16
+#define PS_ON_PIN          -1
+#define KILL_PIN           -1
+#define SUICIDE_PIN        68  //83 PIN that has to be turned on right after start, to keep power flowing.
+
+#ifdef ULTRA_LCD
+  //arduino pin witch triggers an piezzo beeper
+    #define BEEPER 27  //73   
+
+    #define LCD_PINS_RS     26  //74
+    #define LCD_PINS_ENABLE 25  //75
+    #define LCD_PINS_D4     14  //64
+    #define LCD_PINS_D5     39  //70
+    #define LCD_PINS_D6     29  //71
+    #define LCD_PINS_D7     28  //72
+    
+    //buttons are directly attached
+    #define BTN_EN1         30  //60
+    #define BTN_EN2         15  //63
+    #define BTN_ENC         31  //59
+    
+    #define SDCARDDETECT     3  //7
+
+#endif //ULTRA_LCD
+
+#endif
 
 /****************************************************************************************
 * RUMBA pin assignment
@@ -2464,8 +2554,8 @@
 
  //Cheaptronic v1.0 does not use this port
  #define SDCARDDETECT -1
-
- //encoder rotation values
+ 
+   //encoder rotation values
  #define encrot0 0
  #define encrot1 2
  #define encrot2 3

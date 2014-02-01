@@ -132,7 +132,7 @@ extern volatile uint16_t buttons;  //an extended version of the last checked but
     #define encrot1 2
     #define encrot2 3
     #define encrot3 1
-#endif 
+  #endif
 
 #endif //ULTIPANEL
 
@@ -178,7 +178,7 @@ extern volatile uint16_t buttons;  //an extended version of the last checked but
     #include <LiquidCrystal_I2C.h>
     #define LCD_CLASS LiquidCrystal_I2C
     LCD_CLASS lcd(LCD_I2C_ADDRESS, LCD_WIDTH, LCD_HEIGHT);
-    
+  
 // 2 wire Non-latching LCD SR from:
 // https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/schematics#!shiftregister-connection 
 #elif defined(SR_LCD_2W_NL)
@@ -194,7 +194,7 @@ extern volatile uint16_t buttons;  //an extended version of the last checked but
     #include "LiquidCrystalRus.h"
     #define LCD_CLASS LiquidCrystalRus
   #else 
-    #include <LiquidCrystal.h>
+    #include "MAKEiT_LiquidCrystal.h"
     #define LCD_CLASS LiquidCrystal
   #endif  
   LCD_CLASS lcd(LCD_PINS_RS, LCD_PINS_ENABLE, LCD_PINS_D4, LCD_PINS_D5,LCD_PINS_D6,LCD_PINS_D7);  //RS,Enable,D4,D5,D6,D7
@@ -604,7 +604,17 @@ static void lcd_implementation_drawmenu_setting_edit_generic_P(uint8_t row, cons
 #define lcd_implementation_drawmenu_setting_edit_callback_bool_selected(row, pstr, pstr2, data, callback) lcd_implementation_drawmenu_setting_edit_generic_P(row, pstr, '>', (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 #define lcd_implementation_drawmenu_setting_edit_callback_bool(row, pstr, pstr2, data, callback) lcd_implementation_drawmenu_setting_edit_generic_P(row, pstr, ' ', (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
-
+void lcd_implementation_drawedit_text(uint8_t col,uint8_t row,const char* pstr)
+{
+    lcd.setCursor(col, row);
+    lcd_printPGM(pstr);
+}
+void lcd_implementation_drawedit_text_value(uint8_t col,uint8_t row,const char* pstr, char* value)
+{
+    lcd.setCursor(col, row);
+    lcd_printPGM(pstr);
+    lcd.print(value);
+}
 void lcd_implementation_drawedit(const char* pstr, char* value)
 {
     lcd.setCursor(1, 1);
@@ -744,6 +754,16 @@ static void lcd_implementation_update_indicators()
   #endif
 }
 #endif
+
+void change_filament2_temp()
+{
+//  int xHotend=int(degHotend(1) + 0.5);
+//  int xTarget=int(degTargetHotend(1) + 0.5);
+  lcd.setCursor(6, 3);
+//  lcd.print(itostr3(xHotend));
+  lcd.print('/');
+//  lcd.print(itostr3left(xTarget));
+}
 
 #ifdef LCD_HAS_SLOW_BUTTONS
 extern uint32_t blocking_enc;

@@ -53,7 +53,7 @@
    #ifdef BTENABLED
          #define MYSERIAL bt
    #else
-         #define MYSERIAL Serial
+  #define MYSERIAL Serial
    #endif // BTENABLED
 #else
   #define MYSERIAL MSerial
@@ -121,7 +121,7 @@ void manage_inactivity();
     #define  enable_y() { WRITE(Y_ENABLE_PIN, Y_ENABLE_ON); WRITE(Y2_ENABLE_PIN,  Y_ENABLE_ON); }
     #define disable_y() { WRITE(Y_ENABLE_PIN,!Y_ENABLE_ON); WRITE(Y2_ENABLE_PIN, !Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
   #else
-    #define  enable_y() WRITE(Y_ENABLE_PIN, Y_ENABLE_ON)
+  #define  enable_y() WRITE(Y_ENABLE_PIN, Y_ENABLE_ON)
     #define disable_y() { WRITE(Y_ENABLE_PIN,!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
   #endif
 #else
@@ -133,6 +133,8 @@ void manage_inactivity();
   #ifdef Z_DUAL_STEPPER_DRIVERS
     #define  enable_z() { WRITE(Z_ENABLE_PIN, Z_ENABLE_ON); WRITE(Z2_ENABLE_PIN, Z_ENABLE_ON); }
     #define disable_z() { WRITE(Z_ENABLE_PIN,!Z_ENABLE_ON); WRITE(Z2_ENABLE_PIN,!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
+    #define disable_z1() { WRITE(Z_ENABLE_PIN,!Z_ENABLE_ON); WRITE(Z2_ENABLE_PIN, Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
+    #define disable_z2() { WRITE(Z_ENABLE_PIN, Z_ENABLE_ON); WRITE(Z2_ENABLE_PIN,!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
   #else
     #define  enable_z() WRITE(Z_ENABLE_PIN, Z_ENABLE_ON)
     #define disable_z() { WRITE(Z_ENABLE_PIN,!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
@@ -181,6 +183,7 @@ extern float delta[3];
 void prepare_move();
 void kill();
 void Stop();
+void HomingG28 ();
 
 bool IsStopped();
 
@@ -198,6 +201,12 @@ void setPwmFrequency(uint8_t pin, int val);
   #define CRITICAL_SECTION_END    SREG = _sreg;
 #endif //CRITICAL_SECTION_START
 
+extern char simultaneousPrinting; 
+extern unsigned char disable_Z;
+extern float leveling_left;
+extern float leveling_right;
+extern float leveling_front;
+extern float leveling_flg;
 extern float homing_feedrate[];
 extern bool axis_relative_modes[];
 extern int feedmultiply;
@@ -208,10 +217,10 @@ extern float add_homeing[3];
 extern float endstop_adj[3];
 #endif
 extern float min_pos[3];
-extern float max_pos[3];
+extern float max_pos[3]; 
 extern bool axis_known_position[3];
 extern float zprobe_zoffset;
-extern int fanSpeed;
+extern int fanSpeed;  
 #ifdef BARICUDA
 extern int ValvePressure;
 extern int EtoPPressure;

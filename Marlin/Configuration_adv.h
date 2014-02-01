@@ -42,7 +42,7 @@
 
 //Show Temperature ADC value
 //The M105 command return, besides traditional information, the ADC value read from temperature sensors.
-//#define SHOW_TEMP_ADC_VALUES
+#define SHOW_TEMP_ADC_VALUES
 
 //  extruder run-out prevention. 
 //if the machine is idle, and the temperature over MINTEMP, every couple of SECONDS some filament is extruded
@@ -143,12 +143,12 @@
 // Only a few motherboards support this, like RAMPS, which have dual extruder support (the 2nd, often unused, extruder driver is used
 // to control the 2nd Z axis stepper motor). The pins are currently only defined for a RAMPS motherboards.
 // On a RAMPS (or other 5 driver) motherboard, using this feature will limit you to using 1 extruder.
-//#define Z_DUAL_STEPPER_DRIVERS
+#define Z_DUAL_STEPPER_DRIVERS
 
-#ifdef Z_DUAL_STEPPER_DRIVERS
-  #undef EXTRUDERS
-  #define EXTRUDERS 1
-#endif
+//#ifdef Z_DUAL_STEPPER_DRIVERS
+//  #undef EXTRUDERS
+//  #define EXTRUDERS 1
+//#endif
 
 // Same again but for Y Axis.
 //#define Y_DUAL_STEPPER_DRIVERS
@@ -162,8 +162,8 @@
 #endif
 
 #if defined (Z_DUAL_STEPPER_DRIVERS) && defined (Y_DUAL_STEPPER_DRIVERS)
-  #error "You cannot have dual drivers for both Y and Z"
-#endif
+    #error "You cannot have dual drivers for both Y and Z"
+  #endif
 
 // Enable this for dual x-carriage printers. 
 // A dual x-carriage design has the advantage that the inactive extruder can be parked which
@@ -210,17 +210,17 @@
 // Default x offset in duplication mode (typically set to half print bed width)
 #define DEFAULT_DUPLICATION_X_OFFSET 100
 
-#endif //DUAL_X_CARRIAGE
-    
+#endif // DUAL_X_CARRIAGE
+
 //homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
 #define X_HOME_RETRACT_MM 5 
 #define Y_HOME_RETRACT_MM 5 
 #define Z_HOME_RETRACT_MM 1 
-//#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
+#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
 
 #define AXIS_RELATIVE_MODES {false, false, false, false}
 
-#define MAX_STEP_FREQUENCY 40000 // Max step frequency for Ultimaker (5000 pps / half step)
+#define MAX_STEP_FREQUENCY 40000 //Max step frequency for Ultimaker (5000 pps / half step)
 
 //By default pololu step drivers require an active high signal. However, some high power drivers require an active low signal as step.
 #define INVERT_X_STEP_PIN false
@@ -297,9 +297,9 @@
 // Babystepping enables the user to control the axis in tiny amounts, independently from the normal printing process
 // it can e.g. be used to change z-positions in the print startup phase in realtime
 // does not respect endstops!
-//#define BABYSTEPPING
+#define BABYSTEPPING
 #ifdef BABYSTEPPING
-  #define BABYSTEP_XY  //not only z, but also XY in the menu. more clutter, more functions
+  //#define BABYSTEP_XY  //not only z, but also XY in the menu. more clutter, more functions
   #define BABYSTEP_INVERT_Z false  //true for inverse movements in Z
   #define BABYSTEP_Z_MULTIPLICATOR 2 //faster z movements
   
@@ -321,13 +321,13 @@
 // hooke's law says:		force = k * distance
 // bernoulli's priniciple says:	v ^ 2 / 2 + g . h + pressure / density = constant
 // so: v ^ 2 is proportional to number of steps we advance the extruder
-//#define ADVANCE
+#define ADVANCE
 
 #ifdef ADVANCE
-  #define EXTRUDER_ADVANCE_K .0
+  #define EXTRUDER_ADVANCE_K 0.02
 
-  #define D_FILAMENT 2.85
-  #define STEPS_MM_E 836
+  #define D_FILAMENT 1.75
+  #define STEPS_MM_E 100
   #define EXTRUTION_AREA (0.25 * D_FILAMENT * D_FILAMENT * 3.14159)
   #define STEPS_PER_CUBIC_MM_E (axis_steps_per_unit[E_AXIS]/ EXTRUTION_AREA)
 
@@ -401,17 +401,21 @@ const unsigned int dropsegments=5; //everything with less than this number of st
   #define FILAMENTCHANGEENABLE
   #ifdef FILAMENTCHANGEENABLE
     #define FILAMENTCHANGE_XPOS 3
-    #define FILAMENTCHANGE_YPOS 3
-    #define FILAMENTCHANGE_ZADD 10
-    #define FILAMENTCHANGE_FIRSTRETRACT -2
-    #define FILAMENTCHANGE_FINALRETRACT -100
+    #define FILAMENTCHANGE_YPOS 240
+    #define FILAMENTCHANGE_ZADD 20
+    //#define FILAMENTCHANGE_FIRSTRETRACT -5
+    #define FILAMENTCHANGE_FINALRETRACT -850
+    //#define FILAMENTCHANGE_FIRSTFEED 150
+    #define FILAMENTCHANGE_INFEED 800
+    #define FILAMENTCHANGE_INFEEDTEMP 230
+    #define FILAMENTCHANGE_RETRACTEMP 180
   #endif
 #endif
 
 #ifdef FILAMENTCHANGEENABLE
   #ifdef EXTRUDER_RUNOUT_PREVENT
     #error EXTRUDER_RUNOUT_PREVENT currently incompatible with FILAMENTCHANGE
-  #endif 
+  #endif
 #endif
  
 //===========================================================================

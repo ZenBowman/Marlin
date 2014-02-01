@@ -7,8 +7,6 @@
 
 #ifdef SDSUPPORT
 
-
-
 CardReader::CardReader()
 {
    filesize = 0;
@@ -278,7 +276,7 @@ void CardReader::openFile(char* name,bool read, bool replace_current/*=true*/)
      SERIAL_ECHOPGM("Now doing file: ");
      SERIAL_ECHOLN(name);
     }
-    file.close();
+  file.close();
   }
   else //opening fresh file
   {
@@ -289,7 +287,7 @@ void CardReader::openFile(char* name,bool read, bool replace_current/*=true*/)
   }
   sdprinting = false;
   
- 
+  
   SdFile myDir;
   curDir=&root;
   char *fname=name;
@@ -624,15 +622,15 @@ void CardReader::printingHasFinished()
     }
     else
     {
-      quickStop();
-      file.close();
-      sdprinting = false;
-      if(SD_FINISHED_STEPPERRELEASE)
-      {
-          //finishAndDisableSteppers();
-          enquecommand_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-      }
-      autotempShutdown();
+    quickStop();
+    file.close();
+    sdprinting = false;
+    if(SD_FINISHED_STEPPERRELEASE)
+    {
+        //finishAndDisableSteppers();
+        enquecommand_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+    }
+    autotempShutdown();
     }
 }
 #endif //SDSUPPORT

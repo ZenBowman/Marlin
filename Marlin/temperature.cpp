@@ -65,7 +65,7 @@ float current_temperature_bed = 0.0;
 #ifdef FAN_SOFT_PWM
   unsigned char fanSpeedSoftPwm;
 #endif
-
+  
 unsigned char soft_pwm_bed;
   
 #ifdef BABYSTEPPING
@@ -1190,7 +1190,7 @@ ISR(TIMER0_COMPB_vect)
 //      break;
   }
     
-  if(temp_count >= OVERSAMPLENR) // 8 * 16 * 1/(16000000/64/256)  = 131ms.
+  if(temp_count >= 16) // 8 ms * 16 = 128ms.
   {
     if (!temp_meas_ready) //Only update the raw values if they have been read. Else we could be updating them during reading.
     {
@@ -1272,7 +1272,7 @@ ISR(TIMER0_COMPB_vect)
        bed_max_temp_error();
     }
 #endif
-  }
+  }  
   
 #ifdef BABYSTEPPING
   for(uint8_t axis=0;axis<3;axis++)

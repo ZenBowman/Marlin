@@ -148,7 +148,7 @@ void Config_PrintSettings()
     SERIAL_ECHOPAIR("  M206 X",add_homeing[0] );
     SERIAL_ECHOPAIR(" Y" ,add_homeing[1] );
     SERIAL_ECHOPAIR(" Z" ,add_homeing[2] );
-    SERIAL_ECHOLN("");
+    SERIAL_ECHOLN("");	 
 #ifdef DELTA
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Endstop adjustement (mm):");
@@ -234,7 +234,7 @@ void Config_RetrieveSettings()
         Config_ResetDefault();
     }
     #ifdef EEPROM_CHITCHAT
-      Config_PrintSettings();
+    Config_PrintSettings();
     #endif
 }
 #endif

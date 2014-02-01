@@ -11,7 +11,8 @@
   void lcd_setstatuspgm(const char* message);
   void lcd_setalertstatuspgm(const char* message);
   void lcd_reset_alert_level();
-
+  void post_leveling_values();
+  
 #ifdef DOGLCD
   extern int lcd_contrast;
   void lcd_setcontrast(uint8_t value);
@@ -44,6 +45,8 @@
   extern int absPreheatFanSpeed;
     
   void lcd_buzz(long duration,uint16_t freq);
+  void post_feeding_done();
+  
   bool lcd_clicked();
 
   #ifdef NEWPANEL
@@ -97,6 +100,7 @@
   #define LCD_ALERTMESSAGEPGM(x) 
 #endif 
 
+char *ftostr12(const float &x);
 char *itostr2(const uint8_t &x);
 char *itostr31(const int &xx);
 char *itostr3(const int &xx);

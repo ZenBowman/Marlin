@@ -653,7 +653,15 @@ block->steps_y = labs((target[X_AXIS]-position[X_AXIS]) - (target[Y_AXIS]-positi
   if(block->steps_y != 0) enable_y();
   #endif
 #ifndef Z_LATE_ENABLE
-  if(block->steps_z != 0) enable_z();
+  if(block->steps_z != 0) {	
+  	if (disable_Z == 1) {
+          disable_z1();
+        }else if (disable_Z == 2) {
+          disable_z2();
+        }else {
+          enable_z();
+        }
+  }
 #endif
 
   // Enable all
@@ -942,7 +950,7 @@ vector_3 plan_get_position() {
 
 	//position.debug("in plan_get position");
 	//plan_bed_level_matrix.debug("in plan_get bed_level");
-	matrix_3x3 inverse = matrix_3x3::transpose(plan_bed_level_matrix);
+	matrix_3x3 inverse = matrix_3x3::create_inverse(plan_bed_level_matrix);
 	//inverse.debug("in plan_get inverse");
 	position.apply_rotation(inverse);
 	//position.debug("after rotation");
@@ -954,7 +962,7 @@ vector_3 plan_get_position() {
 #ifdef ENABLE_AUTO_BED_LEVELING
 void plan_set_position(float x, float y, float z, const float &e)
 {
-  apply_rotation_xyz(plan_bed_level_matrix, x, y, z);
+  apply_rotation_xyz(plan_bed_level_matrix, x, y ,z);
 #else
 void plan_set_position(const float &x, const float &y, const float &z, const float &e)
 {
