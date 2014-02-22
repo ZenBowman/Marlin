@@ -7,6 +7,8 @@
 
 #ifdef SDSUPPORT
 
+
+
 CardReader::CardReader()
 {
    filesize = 0;

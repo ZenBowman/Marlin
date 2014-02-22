@@ -145,25 +145,11 @@
 // On a RAMPS (or other 5 driver) motherboard, using this feature will limit you to using 1 extruder.
 #define Z_DUAL_STEPPER_DRIVERS
 
-//#ifdef Z_DUAL_STEPPER_DRIVERS
-//  #undef EXTRUDERS
-//  #define EXTRUDERS 1
-//#endif
-
 // Same again but for Y Axis.
 //#define Y_DUAL_STEPPER_DRIVERS
 
 // Define if the two Y drives need to rotate in opposite directions
 #define INVERT_Y2_VS_Y_DIR true
-
-#ifdef Y_DUAL_STEPPER_DRIVERS
-  #undef EXTRUDERS
-  #define EXTRUDERS 1
-#endif
-
-#if defined (Z_DUAL_STEPPER_DRIVERS) && defined (Y_DUAL_STEPPER_DRIVERS)
-    #error "You cannot have dual drivers for both Y and Z"
-  #endif
 
 // Enable this for dual x-carriage printers. 
 // A dual x-carriage design has the advantage that the inactive extruder can be parked which
@@ -208,7 +194,7 @@
 #define TOOLCHANGE_UNPARK_ZLIFT 1        // the distance to raise Z axis when unparking an extruder
 
 // Default x offset in duplication mode (typically set to half print bed width)
-#define DEFAULT_DUPLICATION_X_OFFSET 100
+#define DEFAULT_DUPLICATION_X_OFFSET 50
 
 #endif // DUAL_X_CARRIAGE
 
@@ -392,7 +378,7 @@ const unsigned int dropsegments=5; //everything with less than this number of st
 // until then, intended retractions can be detected by moves that only extrude and the direction. 
 // the moves are than replaced by the firmware controlled ones.
 
-// #define FWRETRACT  //ONLY PARTIALLY TESTED
+ //#define FWRETRACT  //ONLY PARTIALLY TESTED
 #define MIN_RETRACT 0.1 //minimum extruded mm to accept a automatic gcode retraction attempt
 
 
@@ -402,8 +388,8 @@ const unsigned int dropsegments=5; //everything with less than this number of st
   #ifdef FILAMENTCHANGEENABLE
     #define FILAMENTCHANGE_XPOS 3
     #define FILAMENTCHANGE_YPOS 240
-    #define FILAMENTCHANGE_ZADD 20
-    //#define FILAMENTCHANGE_FIRSTRETRACT -5
+    #define FILAMENTCHANGE_ZADD 10
+    #define FILAMENTCHANGE_FIRSTRETRACT -10
     #define FILAMENTCHANGE_FINALRETRACT -850
     //#define FILAMENTCHANGE_FIRSTFEED 150
     #define FILAMENTCHANGE_INFEED 800

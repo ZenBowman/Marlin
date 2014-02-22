@@ -194,11 +194,20 @@ float leveling_left;
 float leveling_right;
 float leveling_front;
 float leveling_flg;
+
 float homing_feedrate[] = HOMING_FEEDRATE;
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES;
 int feedmultiply=100; //100->1 200->2
 int saved_feedmultiply;
 int extrudemultiply=100; //100->1 200->2
+float volumetric_multiplier[EXTRUDERS] = {1.0
+  #if EXTRUDERS > 1
+    , 1.0
+    #if EXTRUDERS > 2
+      , 1.0
+    #endif
+  #endif
+};
 float current_position[NUM_AXIS] = { 0.0, 0.0, 0.0, 0.0 };
 float add_homeing[3]={0,0,0};
 #ifdef DELTA
@@ -252,6 +261,7 @@ int EtoPPressure=0;
 float delta[3] = {0.0, 0.0, 0.0};
 #endif
 
+  
 //===========================================================================
 //=============================private variables=============================
 //===========================================================================
@@ -289,9 +299,7 @@ unsigned long starttime=0;
 unsigned long stoptime=0;
 
 static uint8_t tmp_extruder;
-static uint8_t last_active_extruder;
-float target[4];
-float lastpos[4];
+
 
 bool Stopped=false;
 
@@ -301,6 +309,9 @@ bool Stopped=false;
 
 bool CooldownNoWait = true;
 bool target_direction;
+
+float target[4];
+float lastpos[4]; 
 
 //===========================================================================
 //=============================ROUTINES=============================
@@ -496,7 +507,7 @@ void setup()
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
   #endif
-  HomingG28();
+  enquecommand_P(PSTR("G28"));
 }
 
 
@@ -887,7 +898,7 @@ static void run_z_probe() {
     feedrate = homing_feedrate[Z_AXIS];
 
     // move down until you find the bed
-    float zPosition = -3;
+    float zPosition = -1;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
 
@@ -1066,7 +1077,7 @@ void HomingG28 (void) {
       plan_bed_level_matrix.set_to_identity();  //Reset the plane ("erase" all leveling data)
 #endif //ENABLE_AUTO_BED_LEVELING
 
-
+      
       saved_feedrate = feedrate;
       saved_feedmultiply = feedmultiply;
       feedmultiply = 100;
@@ -1230,7 +1241,7 @@ void HomingG28 (void) {
 void AutoBedLeveling29(void) {
 
             float x_tmp, y_tmp, z_tmp, real_z;
-    
+            
             #if Z_MIN_PIN == -1
             #error "You must have a Z_MIN endstop in order to enable Auto Bed Leveling feature!!! Z_MIN_PIN must point to a valid hardware pin."
             #endif
@@ -1678,7 +1689,7 @@ void process_commands()
       HomingG28();
       AutoNozzleOffset();
       break;         
-    case 33:  
+    case 33:  //Start printing  
       HomingG28();
       AutoXleveling();
       AutoBedLeveling29();
@@ -1987,6 +1998,10 @@ void process_commands()
       #endif
       if (code_seen('S')) {
         setTargetHotend(code_value(), tmp_extruder);
+        
+        if (simultaneousPrinting && tmp_extruder == 0)
+          setTargetHotend1(code_value());
+          
 #ifdef DUAL_X_CARRIAGE
         if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && tmp_extruder == 0)
           setTargetHotend1(code_value() == 0.0 ? 0.0 : code_value() + duplicate_extruder_temp_offset);
@@ -1994,6 +2009,10 @@ void process_commands()
         CooldownNoWait = true;
       } else if (code_seen('R')) {
         setTargetHotend(code_value(), tmp_extruder);
+        
+        if (simultaneousPrinting && tmp_extruder == 0)
+          setTargetHotend1(code_value());
+          
 #ifdef DUAL_X_CARRIAGE
         if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && tmp_extruder == 0)
           setTargetHotend1(code_value() == 0.0 ? 0.0 : code_value() + duplicate_extruder_temp_offset);
@@ -2023,8 +2042,8 @@ void process_commands()
           _and_ until TEMP_RESIDENCY_TIME hasn't passed since we reached it */
         while((residencyStart == -1) ||
               (residencyStart >= 0 && (((unsigned int) (millis() - residencyStart)) < (TEMP_RESIDENCY_TIME * 1000UL))) ) {
-      #else
-        while ( target_direction ? (isHeatingHotend(tmp_extruder)) : (isCoolingHotend(tmp_extruder)&&(CooldownNoWait==false)) ) {
+ //     #else
+        while ( target_direction ? (isHeatingHotend(tmp_extruder)) || ((isHeatingHotend(1)) && simultaneousPrinting) : (isCoolingHotend(tmp_extruder)&&(CooldownNoWait==false))) {
       #endif //TEMP_RESIDENCY_TIME
           if( (millis() - codenum) > 1000UL )
           { //Print Temp Reading and remaining time every 1 second while heating up/cooling down
@@ -2061,6 +2080,7 @@ void process_commands()
             residencyStart = millis();
           }
         #endif //TEMP_RESIDENCY_TIME
+        }
         }
         LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
         starttime=millis();
@@ -2333,6 +2353,33 @@ void process_commands()
       }
       break;
     #endif //BLINKM
+    case 200: // M200 S<millimeters> set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).
+      {
+        float area;
+        if(code_seen('S')) {
+          float radius = code_value() / 2;
+          if(radius == 0) {
+            area = 1;
+          } else {
+            area = M_PI * pow(radius, 2);
+          }
+        } else {
+          //reserved for setting filament diameter via UFID or filament measuring device
+          break;
+        }
+        tmp_extruder = active_extruder;
+        if(code_seen('T')) {
+          tmp_extruder = code_value();
+          if(tmp_extruder >= EXTRUDERS) {
+            SERIAL_ECHO_START;
+            SERIAL_ECHO(MSG_M200_INVALID_EXTRUDER);
+          }
+          SERIAL_ECHOLN(tmp_extruder);
+          break;
+        }
+        volumetric_multiplier[tmp_extruder] = 1 / area;
+      }
+      break;
     case 201: // M201
       for(int8_t i=0; i < NUM_AXIS; i++)
       {
@@ -2747,8 +2794,6 @@ void process_commands()
     #ifdef FILAMENTCHANGEENABLE
     case 600: //Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
     {
-       // float target[4];
-       // float lastpos[4];
         target[X_AXIS]=current_position[X_AXIS];
         target[Y_AXIS]=current_position[Y_AXIS];
         target[Z_AXIS]=current_position[Z_AXIS];
@@ -2757,6 +2802,8 @@ void process_commands()
         lastpos[Y_AXIS]=current_position[Y_AXIS];
         lastpos[Z_AXIS]=current_position[Z_AXIS];
         lastpos[E_AXIS]=current_position[E_AXIS];
+        lastpos[E_AXIS]=current_position[E_AXIS];
+        
         //retract by E
         if(code_seen('E'))
         {
@@ -2768,7 +2815,8 @@ void process_commands()
             target[E_AXIS]+= FILAMENTCHANGE_FIRSTRETRACT ;
           #endif
         }
-        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder);
+
 
         //lift Z
         if(code_seen('Z'))
@@ -2781,7 +2829,7 @@ void process_commands()
             target[Z_AXIS]+= FILAMENTCHANGE_ZADD ;
           #endif
         }
-        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder);
 
         //move xy
         if(code_seen('X'))
@@ -2805,7 +2853,7 @@ void process_commands()
           #endif
         }
 
-        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder);
 
         if(code_seen('L'))
         {
@@ -2818,7 +2866,7 @@ void process_commands()
           #endif
         }
 
-        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder);
 
         //finish moves
         st_synchronize();
@@ -2832,7 +2880,7 @@ void process_commands()
         while(!lcd_clicked()){
           cnt++;
           manage_heater();
-//          manage_inactivity();
+          manage_inactivity();
           lcd_update();
           if(cnt==0)
           {
@@ -2843,7 +2891,7 @@ void process_commands()
             delay(3);
             WRITE(BEEPER,LOW);
             delay(3);
-          #else 
+          #else
             lcd_buzz(1000/6,100);
           #endif
           }
@@ -2861,15 +2909,14 @@ void process_commands()
           #endif
         }
         current_position[E_AXIS]=target[E_AXIS]; //the long retract of L is compensated by manual filament feeding
-        plan_set_e_position(current_position[E_AXIS]); 
+        plan_set_e_position(current_position[E_AXIS]);
         plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder); //should do nothing
         plan_buffer_line(lastpos[X_AXIS], lastpos[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder); //move xy back
         plan_buffer_line(lastpos[X_AXIS], lastpos[Y_AXIS], lastpos[Z_AXIS], target[E_AXIS], feedrate/60, active_extruder); //move z back
         plan_buffer_line(lastpos[X_AXIS], lastpos[Y_AXIS], lastpos[Z_AXIS], lastpos[E_AXIS], feedrate/60, active_extruder); //final untretract
     }
     break;
-
-    #endif   
+    #endif //FILAMENTCHANGEENABLE
     #ifdef DUAL_X_CARRIAGE
     case 605: // Set dual x-carriage movement mode:
               //    M605 S0: Full control mode. The slicer has full control over x-carriage movement
@@ -2915,24 +2962,128 @@ void process_commands()
         delayed_move_time = 0;
     }
     break;
-    #endif //DUAL_X_CARRIAGE         
-   case 800: // Park extruder
-    {   
-      park_extruder();
-    }
-    break;
-    case 801: // Unpark extruder
+    #endif //DUAL_X_CARRIAGE 
+    //Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+    case 800: // Park extruder until button is pushed
     {
-      current_position[X_AXIS] = lastpos[X_AXIS];
-      current_position[Y_AXIS] = lastpos[Y_AXIS];
-      current_position[Z_AXIS] = lastpos[Z_AXIS];
-      
-      do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+        target[X_AXIS]=current_position[X_AXIS];
+        target[Y_AXIS]=current_position[Y_AXIS];
+        target[Z_AXIS]=current_position[Z_AXIS];
+        target[E_AXIS]=current_position[E_AXIS];
+        lastpos[X_AXIS]=current_position[X_AXIS];
+        lastpos[Y_AXIS]=current_position[Y_AXIS];
+        lastpos[Z_AXIS]=current_position[Z_AXIS];
+        lastpos[E_AXIS]=current_position[E_AXIS];
+
+        //retract by E
+        if(code_seen('E')){
+          target[E_AXIS]+= code_value();
+        }else{
+            target[E_AXIS]+= FILAMENTCHANGE_FIRSTRETRACT;
+        }
+
+        //lift Z
+        if(code_seen('Z')){
+          target[Z_AXIS]+= code_value();
+        }else{
+            target[Z_AXIS]+= FILAMENTCHANGE_ZADD ;
+        }
+
+        //move xy
+        if(code_seen('X')){
+          target[X_AXIS]+= code_value();
+        }else{
+            target[X_AXIS]= FILAMENTCHANGE_XPOS ;
+        }
+        
+        if(code_seen('Y')){
+          target[Y_AXIS]= code_value();
+        }else{
+            target[Y_AXIS]= FILAMENTCHANGE_YPOS ;
+        }
+
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+
+        //finish moves
+        st_synchronize();
+        
+        post_feeding_done();
+
+        while(!lcd_clicked()){
+          manage_heater();
+          manage_inactivity();
+          lcd_update();
+        }
+
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder); //should do nothing
+        //finish moves
+        st_synchronize();
+        
+        plan_buffer_line(lastpos[X_AXIS], lastpos[Y_AXIS], lastpos[Z_AXIS], lastpos[E_AXIS], feedrate/10, active_extruder); //move xyz back
+        
+        //finish moves
+        st_synchronize();
     }
     break;
-    case 802: //Remove filament 1
+    case 801: //Park for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+    {
+        target[X_AXIS]=current_position[X_AXIS];
+        target[Y_AXIS]=current_position[Y_AXIS];
+        target[Z_AXIS]=current_position[Z_AXIS];
+        target[E_AXIS]=current_position[E_AXIS];
+        lastpos[X_AXIS]=current_position[X_AXIS];
+        lastpos[Y_AXIS]=current_position[Y_AXIS];
+        lastpos[Z_AXIS]=current_position[Z_AXIS];
+        lastpos[E_AXIS]=current_position[E_AXIS];
+
+        //retract by E
+        if(code_seen('E')){
+          target[E_AXIS]+= code_value();
+        }else{
+            target[E_AXIS]+= FILAMENTCHANGE_FIRSTRETRACT;
+        }
+
+        //lift Z
+        if(code_seen('Z')){
+          target[Z_AXIS]+= code_value();
+        }else{
+            target[Z_AXIS]+= FILAMENTCHANGE_ZADD ;
+        }
+
+        //move xy
+        if(code_seen('X')){
+          target[X_AXIS]+= code_value();
+        }else{
+            target[X_AXIS]= FILAMENTCHANGE_XPOS ;
+        }
+        
+        if(code_seen('Y')){
+          target[Y_AXIS]= code_value();
+        }else{
+            target[Y_AXIS]= FILAMENTCHANGE_YPOS ;
+        }
+
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder);
+
+        //finish moves
+        st_synchronize();
+        exchange_position_reached();
+    }
+    break;
+    case 802:
+    {
+        current_position[E_AXIS]=target[E_AXIS]; //the long retract of L is compensated by manual filament feeding
+        plan_set_e_position(current_position[E_AXIS]);
+        plan_buffer_line(target[X_AXIS], target[Y_AXIS], target[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder); //should do nothing    
+        plan_buffer_line(lastpos[X_AXIS], lastpos[Y_AXIS], lastpos[Z_AXIS], target[E_AXIS], feedrate/10, active_extruder); //move xyz back
+     
+        //finish moves
+        st_synchronize();
+    }
+    break;
+    case 803: //Remove filament 1
     {      
-        last_active_extruder = active_extruder;
+        int last_active_extruder = active_extruder;
         active_extruder = 0;
 
         target[E_AXIS] = current_position[E_AXIS] + FILAMENTCHANGE_FINALRETRACT;
@@ -2954,9 +3105,9 @@ void process_commands()
         active_extruder = last_active_extruder;
     }
     break;
-    case 803: //Remove filament 2
+    case 804: //Remove filament 2
     {      
-        last_active_extruder = active_extruder;
+        int last_active_extruder = active_extruder;
         active_extruder = 1;
 
         target[E_AXIS] = current_position[E_AXIS] + FILAMENTCHANGE_FINALRETRACT;
@@ -2977,9 +3128,9 @@ void process_commands()
         active_extruder = last_active_extruder;
     }
     break;
-    case 804: //Insert filament 1
+    case 805: //Insert filament 1
     {
-      last_active_extruder = active_extruder;
+      int last_active_extruder = active_extruder;
       active_extruder = 0;
        
       target[E_AXIS] = current_position[E_AXIS] + FILAMENTCHANGE_INFEED;
@@ -3000,9 +3151,9 @@ void process_commands()
       active_extruder = last_active_extruder;
     }
     break;
-    case 805: //Insert filament 2
+    case 806: //Insert filament 2
     {      
-      last_active_extruder = active_extruder;
+      int last_active_extruder = active_extruder;
       active_extruder = 1;
        
       target[E_AXIS] = current_position[E_AXIS] + FILAMENTCHANGE_INFEED;
@@ -3016,7 +3167,7 @@ void process_commands()
       while(!lcd_clicked()){
         manage_heater();
         manage_inactivity();
-        lcd_update();
+        //lcd_update();
       } 
       current_position[E_AXIS]=target[E_AXIS]; 
       plan_set_e_position(current_position[E_AXIS]);       
@@ -3038,6 +3189,14 @@ void process_commands()
     break; 
     case 811:
     {
+      active_extruder = 1;      
+      plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS] + FILAMENTCHANGE_FIRSTRETRACT, feedrate/10, active_extruder);
+      plan_set_e_position(current_position[E_AXIS]);
+      
+      active_extruder = 0; 
+      plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS] + FILAMENTCHANGE_FIRSTRETRACT, feedrate/10, active_extruder);
+      plan_set_e_position(current_position[E_AXIS]);
+      
       HomingG28();
       AutoNozzleOffset();
       post_leveling_values();

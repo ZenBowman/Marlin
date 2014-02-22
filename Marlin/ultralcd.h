@@ -12,6 +12,8 @@
   void lcd_setalertstatuspgm(const char* message);
   void lcd_reset_alert_level();
   void post_leveling_values();
+  void post_removing();
+  void exchange_position_reached();
   
 #ifdef DOGLCD
   extern int lcd_contrast;
@@ -43,7 +45,8 @@
   extern int absPreheatHotendTemp;
   extern int absPreheatHPBTemp;
   extern int absPreheatFanSpeed;
-    
+  extern int mirrorPrint;
+  
   void lcd_buzz(long duration,uint16_t freq);
   void post_feeding_done();
   

@@ -735,12 +735,12 @@ ISR(TIMER1_COMPA_vect)
         if (e_steps[1] != 0) {
           WRITE(E1_STEP_PIN, INVERT_E_STEP_PIN);
           if (e_steps[1] < 0) {
-          WRITE(E1_DIR_PIN, INVERT_E1_DIR);
+            WRITE(E1_DIR_PIN, !INVERT_E1_DIR);
             e_steps[1]++;
             WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
           } 
           else if (e_steps[1] > 0) {
-          WRITE(E1_DIR_PIN, !INVERT_E1_DIR);
+            WRITE(E1_DIR_PIN, INVERT_E1_DIR);
             e_steps[1]--;
             WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
           }
